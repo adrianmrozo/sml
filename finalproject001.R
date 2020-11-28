@@ -280,4 +280,48 @@ summary(lm.fit2)
 par(mfrow=c(2,2))
 plot(lm.fit2)
 
+###################### Some Predictions: ###########################
+library(tidyverse)
+library(caret)
+library(randomForest)
+
+#check missing values in columns
+NAperc <- df %>% summarize_all(funs(sum(is.na(.)) / length(.)))
+#Here we can see a lot of variables have 1, meaning 100% NA's, I'm going to drop all variables if more than 20% data are missing & non numeric data
+
+df_nas_dropped <- df[,sapply(df, is.numeric)] 
+
+df_nas_dropped <- df_nas_dropped[, which(colMeans(!is.na(df_nas_dropped)) > 0.8)]
+NAperc <- df_nas_dropped %>% summarize_all(funs(sum(is.na(.)) / length(.)))
+
+# define training control
+train_control <- trainControl(method="repeatedcv", number=10, repeats=3)
+
+#for the 20% missing data im going to generate synthetic data with the mice library FYI: this takes some time :)
+library(mice)
+df_nas_dropped <- mice(df_nas_dropped, method="rf", m = 1)  # perform mice imputation, based on random forests.
+
+# train linear regression model with backward selection
+model1 <- train(rent_full~., data=df_nas_dropped, trControl=train_control, method="leapBackward")
+# summarize results
+print(model1)
+
+# train linear regression model with forward selection
+model2 <- train(rent_full~., data=df_nas_dropped, trControl=train_control, method="leapForward")
+# summarize results
+print(model2)
+
+# train decision model
+model3 <- train(rent_full~., data=df_nas_dropped, trControl=train_control, method="rpart")
+# summarize results
+print(model3)
+
+# model4 <- train(rent_full~., data=df_nas_dropped, trControl=train_control, method="bstTree")
+# summarize results
+# print(model4)
+
+
+
+
+
      
