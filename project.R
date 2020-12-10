@@ -53,8 +53,6 @@ df.ou1 <- complete(df.ou1)
 df.ou1 <- df.ou1%>%select(-wgh_avg_sonnenklasse_per_egid.1)
 anyNA(df.ou1)
 
-summary(lm)
-
 
 #Prediction models needing to set seed beforehand.
 set.seed(123)
@@ -63,6 +61,9 @@ print(model1)
 
 model2 <- train(rent_full~., data=df.out, trControl=trainControl(method = "cv", number = 5), method="leapForward")
 print(model2)
+
+model3 <- train(rent_full~., data=df.out, trControl=trainControl(method = "cv", number = 5), method="bstTree")
+
 
 
 
