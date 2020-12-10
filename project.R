@@ -1,6 +1,7 @@
 #library(ISLR)
 #library(MASS)
 #library(ggplot2)
+library(mice)
 library(tidyverse)
 print(getwd())
 
@@ -61,20 +62,13 @@ model3 <- train(rent_full~., data=df.out, trControl=trainControl(method = "cv", 
 print(model3)
 
 model4 <- train(rent_full~., data=df.out, trControl=trainControl(method = "cv", number = 5), method="rpart")
+print(model4)
 
 
-#dataset without the added 0's
-dfwithout0s <- df%>%select(-wgh_avg_sonnenklasse_per_egid.1,-balcony,-elevator,-kids_friendly,-parking_indoor,-parking_outside,-raised_groundfloor)
-df.ou1 <- mice(dfwithout0s, method="rf", m = 1)
-df.ou1 <- complete(df.ou1)
+#not yet testes (takes also way too long)
+library(randomForest)
+model5 <- randomForest(rent_full~., df.out)
+print(model5)
 
-set.seed(123)
-model11 <- train(rent_full~., data=df.ou1, trControl=trainControl(method = "cv", number = 5), method="leapBackward")
-print(model11)
 
-model22 <- train(rent_full~., data=df.ou1, trControl=trainControl(method = "cv", number = 5), method="leapForward")
-print(model22)
-
-model33 <- train(rent_full~., data=df.ou1, trControl=trainControl(method = "cv", number = 5), method="bstTree")
-print(model33)
 
