@@ -48,11 +48,6 @@ df.out <- complete(df.out)  # generate the completed data.
 df.out <- df.out%>%select(-wgh_avg_sonnenklasse_per_egid.1)
 anyNA(df.out)
 
-df.ou1 <- mice(df) #wanted to see if there is a big difference if default values are used
-df.ou1 <- complete(df.ou1)
-df.ou1 <- df.ou1%>%select(-wgh_avg_sonnenklasse_per_egid.1)
-anyNA(df.ou1)
-
 
 #Prediction models needing to set seed beforehand.
 set.seed(123)
@@ -63,7 +58,23 @@ model2 <- train(rent_full~., data=df.out, trControl=trainControl(method = "cv", 
 print(model2)
 
 model3 <- train(rent_full~., data=df.out, trControl=trainControl(method = "cv", number = 5), method="bstTree")
+print(model3)
+
+model4 <- train(rent_full~., data=df.out, trControl=trainControl(method = "cv", number = 5), method="rpart")
 
 
+#dataset without the added 0's
+dfwithout0s <- df%>%select(-wgh_avg_sonnenklasse_per_egid.1,-balcony,-elevator,-kids_friendly,-parking_indoor,-parking_outside,-raised_groundfloor)
+df.ou1 <- mice(dfwithout0s, method="rf", m = 1)
+df.ou1 <- complete(df.ou1)
 
+set.seed(123)
+model11 <- train(rent_full~., data=df.ou1, trControl=trainControl(method = "cv", number = 5), method="leapBackward")
+print(model11)
+
+model22 <- train(rent_full~., data=df.ou1, trControl=trainControl(method = "cv", number = 5), method="leapForward")
+print(model22)
+
+model33 <- train(rent_full~., data=df.ou1, trControl=trainControl(method = "cv", number = 5), method="bstTree")
+print(model33)
 
