@@ -21,7 +21,7 @@ df$parking_outside[is.na(df$parking_outside)] <- 0
 df$raised_groundfloor[is.na(df$raised_groundfloor)] <- 0
 
 #Overview of the remaining NA values
-NAperc <- df %>% summarize_all(funs(sum(is.na(.))/length(.)))
+NAperc <- df.ou1 %>% summarize_all(funs(sum(is.na(.))/length(.)))
 
 summary(df)
 
@@ -45,6 +45,24 @@ summary(df)
 #for the missing values we will impute them
 df.out <- mice(df, method="rf", m = 1)  # perform mice imputation, based on random forests. takes some time but its worth :)) 
 df.out <- complete(df.out)  # generate the completed data.
+df.out <- df.out%>%select(-wgh_avg_sonnenklasse_per_egid.1)
 anyNA(df.out)
+
+df.ou1 <- mice(df) #wanted to see if there is a big difference if default values are used
+df.ou1 <- complete(df.ou1)
+df.ou1 <- df.ou1%>%select(-wgh_avg_sonnenklasse_per_egid.1)
+anyNA(df.ou1)
+
+summary(lm)
+
+
+#Prediction models needing to set seed beforehand.
+set.seed(123)
+model1 <- train(rent_full~., data=df.out, trControl=trainControl(method = "cv", number = 5), method="leapBackward")
+print(model1)
+
+model2 <- train(rent_full~., data=df.out, trControl=trainControl(method = "cv", number = 5), method="leapForward")
+print(model2)
+
 
 
