@@ -1,7 +1,7 @@
 library(ISLR)
 library(MASS)
 library(ggplot2)
-
+library(tidyverse)
 print(getwd())
 library("rstudioapi") 
 setwd(dirname(getActiveDocumentContext()$path))
@@ -14,23 +14,32 @@ setwd(dirname(getActiveDocumentContext()$path))
 list.files()
 list.files(pattern=".csv")
 
-df <- read.csv("training.csv")
+dforiginal <- read.csv("training-short.csv")
+df <- dforiginal
 
+#dropping all the variables/columns that which we discussed in the group that will not be used.
+drop <- c("GDENAMK", "GDENR", "address", "appartments", "area_useable", "basement", "bath", "bath_tube", "bright", "building_plot", "cabletv", "ceiling", "cheminee", "date", "descr", "dishwasher", "dryer", "furnished", "garden_m2", "gardenshed", "heating_air", "heating_earth", "heating_electro", "heating_far", "heating_gas", "heating_oil", "heating_pellets", "lat", "laundry", "lon", "manlift", "middle_house", "minergie", "new_building", "oldbuilding", "oven", "pets", "playground", "pool", "public_transport", "quarter_general", "quarter_specific", "quiet", "shared_flat", "shopping", "shower", "size_land", "sunny", "terrace", "toilets", "topstorage", "veranda", "water", "wheelchair", "year", "dist_to_lake", "dist_to_main_stat", "geb_wohnnutz_total")
+df = df[,!(names(df) %in% drop)]
+
+#Setting all NA in dataframe to 0, to be done at the end of clean-up
+#df[is.na(df)] <- 0
+
+#Setting in the three columns NA to 0, which we agreed in the group: balcony, elevator, kids_friendly
+df$balcony[is.na(df$balcony)] <- 0
+df$elevator[is.na(df$elevator)] <- 0
+df$kids_friendly[is.na(df$kids_friendly)] <- 0
+
+#Overview of the remaining NA values
+NAperc <- df %>% summarize_all(funs(sum(is.na(.))/length(.)))
 
 #Lets create a very obvious additional column, that is not yet part of the dataset, price per squaremeter
-
 df$pricepersquaremeter <- df$rent_full/df$area
 
-
 #Lets check if there are any rows without any rent prices:
-
 checkifthereareemptyvaluesforrent <- df[is.na(df$rent_full), ]
 
 #If there would have been rows with empty rents, we would need to delete all the rows where we don't have no information on the rent (rent_full empty/NA)
 #As these rows would have been useless for us. But its all good.
-
-
-
 
 attach(df) #so we don't have to write df$ for our columns anymore, create any needed columns before this line.
 
@@ -91,8 +100,16 @@ plot(pricepersquaremeter, Micro_rating,
 )
 
 
+NAperc <- df %>% summarize_all(funs(sum(is.na(.))/length(.)))
+
 #It seems some people entered wrong listings (as some prices per squaremeter are crazy
 
+#Squaremeter was just created for now, to take a look at each variable.
+#Ok, and now the less important variables, just make an for each column a loop, and plot it to one time to total rent, and one time to rent per squaremeter.
+#Maybe delete first the useless ones, such as:
+#description, address
+#remaining strings that are categories and therefore useful: Canton, Type of apartment, I think they should be replaced by dummy variables
+#Create a heatmap would be cool, with coordinates and price per squarefoot.
 
 summary(pricepersquaremeter) # detailed summary/overview of rent_full with min, median, mean, max, NAs of
 hist(pricepersquaremeter) #histogram
@@ -145,6 +162,34 @@ plot(pricepersquaremeter, Micro_rating,
 pairs(~rent_full + rooms + area + Micro_rating, data=df, pch = ".", col="darkblue",)
 
 
+columnnamesnotlist <- names(df)
+print(class(columnnamesnotlist))
+print(columnnamesnotlist)
+is.list(columnnamesnotlist)
+
+columnnameslist<-list()
+is.list(columnnameslist)
+columnnameslist <- c(columnnameslist, columnnamesnotlist)
+is.list(columnnameslist)
+
+df$rent_full <- as.numeric(df$rent_full)
+df$Micro_rating_SunAndView <- as.numeric(df$Micro_rating_SunAndView)
+
+
+for (i in columnnameslist){
+        print(ggplot(df, aes_string(x=df$rent_full, y=i)) + geom_point() +  ggtitle(i)  + expand_limits(y=c(0, 15)))
+}
+
+for (i in columnnameslist){ 
+        print(ggplot(df, aes(x=rent_full, y=Micro_rating)) + geom_point() + ggtitle(i) + expand_limits(y=c(0, 15)))
+}
+
+
+
+
+
+
+
 #Let's split up into training and testing sets (lets use an 80/20 approach, as we have enough data)
 
 train.size = dim(df)[1] * 0.8
@@ -160,6 +205,7 @@ testset <- df.test
 #FROM HERE ON, THERE ARE JUST SOME UNCLEAN CODE OUT OF THE DISCUSSED EXERCISES
 #EVERYTHING BELOW THIS LINE to be deleted
 
+"""
 
 plot(KTKZ, rooms)
 
@@ -320,6 +366,7 @@ print(model3)
 # summarize results
 # print(model4)
 
+"""
 
 
 
